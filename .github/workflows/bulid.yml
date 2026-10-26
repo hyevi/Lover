@@ -1,1 +1,42 @@
+name: Build LOVER Installer
 
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Extract lover_firm.zip
+        shell: pwsh
+        run: |
+          Expand-Archive -Path ".github/workflows/lover_firm.zip" -DestinationPath "src" -Force
+          Get-ChildItem -Recurse src
+
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+
+      - name: Build EXE
+        shell: pwsh
+        run: |
+          cd src
+          if (Test-Path "icon.ico") {
+            pyinstaller --onefile --windowed --icon icon.ico --add-data "config.json;." --add-data "launcher;launcher" main.py
+          } else {
+            pyinstaller --onefile --windowed --add-data "config.json;." --add-data "launcher;launcher" main.py
+          }
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: src/dist/main.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
