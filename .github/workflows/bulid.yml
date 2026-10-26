@@ -4,14 +4,21 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch: {} # позволяет запускать вручную из вкладки Actions
+
+permissions:
+  contents: write # нужно, чтобы softprops/action-gh-release мог создать релиз и загрузить .exe
 
 jobs:
   build:
     runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
